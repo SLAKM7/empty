@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package tutorial;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "validate/validate.proto";
+
+// go package
+option go_package = "grpc-gateway-demo/gen/proto/v1;pb";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+        title: "a swagger test demo", // 应用标题
+        version: "0.1", //提供的API版本
+        contact: {// 公开API联系信息
+            name: "Ethan Leo",
+            url: "",
+            email: "ethanleo@yeah.net"
+        }
+    },
+    base_path: "/v1",
+    host: "localhost",// api host
+    schemes: [HTTP, HTTPS] // API 协议 HTTP HTTPS  WS WSS;
+};
+
+service UserService {
+    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {
+        option (google.api.http) = {
+            post: "/v1/users"
+            body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            summary: "创建用户" // swagger 接口名称
+            description: "创建用户" // swagger 接口描述
+            tags: "用户" // swagger 标签
+            schemes: [HTTP, HTTPS],
+        };
+    };
+
+    rpc GetUser (GetUserRequest) returns (User) {
+        option (google.api.http) = {
+            get: "/v1/users/{id}",
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            summary: "获取用户",
+            tags: "用户",
+            description: "根据用户ID获取用户",
+        };
+
+
+    };
+
+}
+
+message User {
+    string id = 1;
+    string name = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "姓名",
+        default: "Ethan",
+        min_length: 1,
+        max_length: 10,
+    },
+        (google.api.field_behavior) = REQUIRED,
+        (validate.rules).string = {
+            min_len: 1, // 最小长度
+            max_len: 10, // 最大长度
+        }
+
+    ];
+    int32 age = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) =
+        {
+            description: "年龄",
+            default: "0",
+            type: INTEGER,
+        },
+        (validate.rules).int32 = {
+            gte: 0
+        }
+    ];
+    Hobby hobby = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "爱好",
+    }, (google.api.field_behavior) = REQUIRED,
+        (validate.rules).enum = {
+            in: [1, 2]
+        }
+    ];
+}
+// Hobby is Hobby.
+enum Hobby {
+    // 默认
+    HOBBY_UNSPECIFIED = 0;
+    // 跳舞
+    HOBBY_DANCE = 1;
+    // 唱歌
+    HOBBY_SING = 2;
+}
+
+
+message GetUserRequest {
+    string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        field_configuration: {
+            path_param_name: "user_id"
+        }
+    }];
+}
+
+message CreateUserRequest {
+    User user = 1;
+}
+
+message CreateUserResponse {
+    string message = 1;
+}
+
+
+
+message Order {
+    string id = 1;
+    message Info {
+        Order order = 1;
+        double price = 2;
+        message Address {
+            string address = 1;
+            map<string, Info> ai = 2;
+            repeated Address children = 3;
+        }
+    }
+    Info info = 2;
+}
+
+
+
+
+
+
